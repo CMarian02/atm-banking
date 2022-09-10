@@ -25,7 +25,7 @@ class App(tk.Tk):
 
             frame.grid(row=0, column = 0, sticky = "nsew")
         
-        self.show_frame("MainPage")
+        self.show_frame("LoginPage")
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
@@ -59,17 +59,18 @@ class LoginPage(tk.Frame):
         cursor = connection.cursor()
         costumers_name = []
         pins = []
+        balances = []
         for costumer in cursor.execute('select fullname from costumers'):
             costumers_name.append(costumer)
         for pin in cursor.execute('select pin from costumers'):
             pins.append(pin)
+        for balance in cursor.execute('select balance from costumers'):
+            balances.append(balance)
         for costumer in costumers_name:
             if costumer[0] == name:
                 pin_id = costumers_name.index(costumer)
                 if pins[pin_id][0] == int(id):
                     self.controller.show_frame('MainPage')
-                    pins.clear()
-                    costumers_name.clear()
                 else:
                     wrong_pin = tk.Label(self, text = "Your PIN is wrong!", font = ('Helvetica', 12, BOLD),bg = "#004d4d", fg = "darkred")
                     wrong_pin.pack(fill = 'both')
@@ -108,7 +109,7 @@ class MainPage(tk.Frame):
         changepin_btn.image = changepin_img
         changepin_btn.grid(row = 1, column = 1, sticky = tk.E, padx = 10, pady = 40)
         exit_img = EImage()
-        exit_btn = tk.Button(buttons_frame, text = "EXIT", image = exit_img, compound = tk.LEFT, font = ('Bebas NEUE', 20), width = 250, height = 90, cursor = 'hand2')
+        exit_btn = tk.Button(buttons_frame, text = "EXIT", image = exit_img, compound = tk.LEFT, font = ('Bebas NEUE', 20), width = 250, height = 90, cursor = 'hand2', command = lambda:app.destroy())
         exit_btn.image = exit_img
         exit_btn.grid(row = 2, column = 1, sticky = tk.E, padx = 10, pady = 40)
         version_text = tk.Label(buttons_frame, text = "ATMBanking v0.1", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
@@ -118,6 +119,8 @@ class MainPage(tk.Frame):
         buttons_frame.grid_columnconfigure(1, weight = 1)
         buttons_frame.grid_rowconfigure(3, weight = 1)
 
+    def check_balance():
+        print(f'{name}')
 
 
 class PageActions(tk.Frame):
