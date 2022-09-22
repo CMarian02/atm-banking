@@ -37,3 +37,24 @@ def EImage():
     ex_logo = ex_logo.resize((25,25), Image.Resampling.LANCZOS)
     exit_img = ImageTk.PhotoImage(ex_logo)
     return exit_img
+def BAImage():
+    #Bank Logo
+    bn_logo = Image.open('img/mainlogo.png')
+    bn_logo = bn_logo.resize((230,170), Image.Resampling.LANCZOS)
+    bank_img = ImageTk.PhotoImage(bn_logo)
+    return bank_img
+def check_balance(name):
+    connection = sqlite3.connect('data/costumers.db')
+    cursor = connection.cursor()
+    costumers_name = []
+    balances = []
+    pins = []
+    for costumer in cursor.execute('select fullname from costumers'):
+        costumers_name.append(costumer)
+    for balance in cursor.execute('select balance from costumers'):
+        balances.append(balance)
+    for costumer in costumers_name:
+         if costumer[0] == name:
+            balance_id = costumers_name.index(costumer)
+            actualbalance = balances[balance_id]
+            return actualbalance[0]
