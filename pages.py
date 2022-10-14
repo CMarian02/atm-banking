@@ -174,7 +174,7 @@ class TransferPage(tk.Frame):
         confirm_entry.grid(row = 3, column = 1, sticky = "W", pady = 20)
         withdraw_frame.pack(fill = 'x', pady = (40,0))
         buttons_frame = tk.Frame(main_frame, bg ="#004d4d")
-        btn_continue = tk.Button(buttons_frame, width = 22, height = 2, text = 'TRANSFER', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:self.check_transfer(tranto_entry.get(), money_entry.get(), userbalance, confirm_entry.get(), userpin))
+        btn_continue = tk.Button(buttons_frame, width = 22, height = 2, text = 'TRANSFER', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:self.check_transfer(tranto_entry.get(), money_entry.get(), userbalance, confirm_entry.get(), userpin, valuename))
         btn_continue.grid(row = 0, column = 0, sticky = tk.W, padx = 20)
         btn_exit = tk.Button(buttons_frame, width = 22, height = 2, text = 'EXIT', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:controller.destroy())
         btn_exit.grid(row = 0, column = 1, sticky = tk.E, padx = 20)
@@ -184,9 +184,41 @@ class TransferPage(tk.Frame):
         buttons_frame.grid_columnconfigure(0, weight = 1)
         buttons_frame.grid_columnconfigure(1, weight = 1)
     
-    def check_transfer(self, toname, tomoney, balance, checkpin, userpin):
-        pass
-        
+    def check_transfer(self, toname, tomoney, balance, checkpin, userpin, valuename):
+        connection = sqlite3.connect('data/costumers.db')
+        cursor = connection.cursor()
+        costumers_name = []
+        balances = []
+        for costumer in cursor.execute('select fullname from costumers'):
+            costumers_name.append(costumer)
+        for balanc in cursor.execute('select balance from costumers'):
+            balances.append(balanc)
+        for costumer in costumers_name:
+            if costumer[0].lower() == toname.lower():
+                snickname = costumer[0]
+                balance_id = costumers_name.index(costumer)
+                if int(tomoney) <= balance:
+                    if checkpin == userpin:
+                        newbalanceto = int(tomoney) + balances[balance_id][0]
+                        newbalanceus = balance - int(tomoney)
+                        sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
+                        data = (newbalanceto, snickname)
+                        cursor.execute(sql_updated, data)
+                        connection.commit()
+                        sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
+                        data = (newbalanceus, valuename)
+                        cursor.execute(sql_updated, data)
+                        connection.commit()
+                        cursor.close()
+                        messagebox.showinfo('Transfer Succes', 'Your transfer succes!')
+                        self.controller.destroy()
+                    else:
+                        messagebox.showerror('PIN Error', 'You enter a wrong pin, try again!')
+                else:
+                    messagebox.showerror('Money Error', 'No money to transfer!')
+
+
+
 class ChangePINPage(tk.Frame):
     def __init__(self, parent, controller, valuename, userpin):
         tk.Frame.__init__(self, parent)
