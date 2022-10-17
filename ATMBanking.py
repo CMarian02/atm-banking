@@ -67,13 +67,14 @@ class LoginPage(tk.Frame):
         bottom_frame.pack(fill = 'both')
         bottom_text = tk.Label(bottom_frame, text = "ATMBanking v0.1", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         bottom_text.pack( side = tk.RIGHT)
-    
+        
     def check_login(self, name, id):
         connection = sqlite3.connect('data/costumers.db')
         cursor = connection.cursor()
         costumers_name = []
         pins = []
         balances = []
+        vname = False
         for costumer in cursor.execute('select fullname from costumers'):
             costumers_name.append(costumer)
         for pin in cursor.execute('select pin from costumers'):
@@ -83,6 +84,7 @@ class LoginPage(tk.Frame):
         for costumer in costumers_name:
             if costumer[0] == name:
                 pin_id = costumers_name.index(costumer)
+                vname = True
                 if pins[pin_id][0] == int(id):
                     self.controller.app_data['balance'] = balances[pin_id][0]
                     self.controller.add_page()
@@ -91,7 +93,10 @@ class LoginPage(tk.Frame):
                     wrong_pin = tk.Label(self, text = "Your PIN is wrong!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
                     wrong_pin.pack(fill = 'both')
                     wrong_pin.after(1000, lambda:wrong_pin.pack_forget())
-
+        if vname == False:
+            wrong_name = tk.Label(self, text = "Your nickname is wrong!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
+            wrong_name.pack(fill = 'both')
+            wrong_name.after(1000, lambda:wrong_name.pack_forget())
 #MainPage
 class MainPage(tk.Frame):
     def __init__(self, parent, controller):
