@@ -189,6 +189,7 @@ class TransferPage(tk.Frame):
         cursor = connection.cursor()
         costumers_name = []
         balances = []
+        testvar = False
         for costumer in cursor.execute('select fullname from costumers'):
             costumers_name.append(costumer)
         for balanc in cursor.execute('select balance from costumers'):
@@ -196,27 +197,32 @@ class TransferPage(tk.Frame):
         for costumer in costumers_name:
             if costumer[0].lower() == toname.lower():
                 snickname = costumer[0]
-                balance_id = costumers_name.index(costumer)
-                if int(tomoney) <= balance:
-                    if checkpin == userpin:
-                        newbalanceto = int(tomoney) + balances[balance_id][0]
-                        newbalanceus = balance - int(tomoney)
-                        sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
-                        data = (newbalanceto, snickname)
-                        cursor.execute(sql_updated, data)
-                        connection.commit()
-                        sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
-                        data = (newbalanceus, valuename)
-                        cursor.execute(sql_updated, data)
-                        connection.commit()
-                        cursor.close()
-                        messagebox.showinfo('Transfer Succes', 'Your transfer succes!')
-                        self.controller.destroy()
-                    else:
-                        messagebox.showerror('PIN Error', 'You enter a wrong pin, try again!')
+                testvar = True
+                if snickname == valuename:
+                    messagebox.showerror('Transfer To Error', 'Error! You try to transfer to same account where you are logged.')
                 else:
-                    messagebox.showerror('Money Error', 'No money to transfer!')
-
+                    balance_id = costumers_name.index(costumer)
+                    if int(tomoney) <= balance:
+                        if checkpin == userpin:
+                            newbalanceto = int(tomoney) + balances[balance_id][0]
+                            newbalanceus = balance - int(tomoney)
+                            sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
+                            data = (newbalanceto, snickname)
+                            cursor.execute(sql_updated, data)
+                            connection.commit()
+                            sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
+                            data = (newbalanceus, valuename)
+                            cursor.execute(sql_updated, data)
+                            connection.commit()
+                            cursor.close()
+                            messagebox.showinfo('Transfer Succes', 'Your transfer succes!')
+                            self.controller.destroy()
+                        else:
+                            messagebox.showerror('PIN Error', 'You enter a wrong pin, try again!')
+                    else:
+                        messagebox.showerror('Money Error', 'No money to transfer!')
+        if testvar == False:
+            messagebox.showerror('Nickname Wrong', 'You try to transfer to a account dosent exist')
 
 
 class ChangePINPage(tk.Frame):
