@@ -11,8 +11,8 @@ class App(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.title('ATMBankingv0.2')
-        self.geometry("720x720+0+0")
+        self.title('ATMBankingv0.3')
+        self.geometry("720x620+0+0")
         self.resizable(False,False)
         self.app_data = {"name": tk.StringVar(), "pin": tk.StringVar(), "balance": tk.StringVar()}
         self.container = tk.Frame(self)
@@ -44,6 +44,18 @@ class App(tk.Tk):
         self.frames["ChangePINPage"] = ChangePINPage(parent = self.container, controller = self, valuename = self.app_data['name'].get(), userpin = self.app_data['pin'].get())
         self.frames["ChangePINPage"].grid(row = 0, column = 0, sticky = "nsew")
 
+    def del_page(self, done = False):
+        self.frames["BalancePage"].destroy()
+        if done == True:
+            self.frames["DepositPage"].destroy()
+            self.frames["TransferPage"].destroy()
+            self.frames["WithdrawPage"].destroy()
+            self.frames["ChangePINPage"].destroy()
+
+    def bal_page(self):
+        self.frames["BalancePage"] = BalancePage(parent = self.container, controller = self, valuename = self.app_data['name'].get())
+        self.frames["BalancePage"].grid(row = 0, column = 0, sticky = "nsew")
+
 #LoginPage
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -59,15 +71,18 @@ class LoginPage(tk.Frame):
         self.name_entry.pack()
         pin_label = tk.Label(login_form, text = "PIN:", bg = "#004d4d", fg = "#b37700", font = ('Verdana', 15 , BOLD))
         pin_label.pack(pady = (40,5))
-        pin_entry = tk.Entry(login_form, textvariable = self.controller.app_data['pin'],show = "*", width = 20, font = ('Verdana', 12, BOLD), bd = 1)
-        pin_entry.pack()
-        button_login = tk.Button(login_form, cursor = 'hand2', text = "LOGIN", width = 10, height = 3, font = ('Helvetica', 12, BOLD), command = lambda:self.check_login(self.name_entry.get(), pin_entry.get()),bg = "#004d4d", fg = '#b37700')
+        self.pin_entry = tk.Entry(login_form, textvariable = self.controller.app_data['pin'],show = "*", width = 20, font = ('Verdana', 12, BOLD), bd = 1)
+        
+        self.pin_entry.pack()
+        button_login = tk.Button(login_form, cursor = 'hand2', text = "LOGIN", width = 10, height = 3, font = ('Helvetica', 12, BOLD), command = lambda:self.check_login(self.name_entry.get(), self.pin_entry.get()),bg = "#004d4d", fg = '#b37700')
         button_login.pack(pady = (40,5))
         bottom_frame = tk.Frame(self, width = 720, height = 30, bg = "#004d4d")
         bottom_frame.pack(fill = 'both')
-        bottom_text = tk.Label(bottom_frame, text = "ATMBanking v0.1", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        bottom_text = tk.Label(bottom_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         bottom_text.pack( side = tk.RIGHT)
-        
+        global pinwrong
+        pinwrong = 0
+
     def check_login(self, name, id):
         connection = sqlite3.connect('data/costumers.db')
         cursor = connection.cursor()
@@ -75,6 +90,7 @@ class LoginPage(tk.Frame):
         pins = []
         balances = []
         vname = False
+        global pinwrong
         for costumer in cursor.execute('select fullname from costumers'):
             costumers_name.append(costumer)
         for pin in cursor.execute('select pin from costumers'):
@@ -89,12 +105,22 @@ class LoginPage(tk.Frame):
                     self.controller.app_data['balance'] = balances[pin_id][0]
                     self.controller.add_page()
                     self.controller.show_frame('MainPage')
+                    self.name_entry.delete(0, END)
+                    self.pin_entry.delete(0, END)
                 else:
-                    wrong_pin = tk.Label(self, text = "Your PIN is wrong!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
-                    wrong_pin.pack(fill = 'both')
-                    wrong_pin.after(1000, lambda:wrong_pin.pack_forget())
+                    if pinwrong == 3:
+                        wrongpins = tk.Label(self, text = "You enter 3 attemps, app close!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
+                        wrongpins.pack(fill = 'both')
+                        wrongpins.after(1000, lambda:wrongpins.pack_forget())
+                        messagebox.showerror('App Closing..', 'You have 3 attemps, your app close!')
+                        self.controller.destroy()
+                    else:
+                        wrong_pin = tk.Label(self, text = "Your PIN is wrong!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
+                        wrong_pin.pack(fill = 'both')
+                        wrong_pin.after(1000, lambda:wrong_pin.pack_forget())
+                        pinwrong += 1
         if vname == False:
-            wrong_name = tk.Label(self, text = "Your nickname is wrong!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
+            wrong_name = tk.Label(self, text = "Your details is wrong!", font = ('Helvetica', 12, BOLD), bg = "#004d4d", fg = "darkred")
             wrong_name.pack(fill = 'both')
             wrong_name.after(1000, lambda:wrong_name.pack_forget())
 #MainPage
@@ -133,7 +159,7 @@ class MainPage(tk.Frame):
         exit_btn = tk.Button(buttons_frame, text = "EXIT", image = exit_img, compound = tk.LEFT, font = ('Bebas NEUE', 20), width = 250, height = 90, cursor = 'hand2', command = lambda:controller.destroy())
         exit_btn.image = exit_img
         exit_btn.grid(row = 2, column = 1, sticky = tk.E, padx = 10, pady = 40)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.1", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (60,0))
         buttons_frame.pack(fill = 'both')
         buttons_frame.grid_columnconfigure(0, weight = 1)
