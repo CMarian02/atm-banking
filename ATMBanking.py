@@ -11,8 +11,8 @@ class App(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.title('ATMBankingv0.3')
-        self.geometry("720x620+0+0")
+        self.title('ATMBankingv0.5')
+        self.geometry("720x720+0+0")
         self.resizable(False,False)
         self.app_data = {"name": tk.StringVar(), "pin": tk.StringVar(), "balance": tk.StringVar()}
         self.container = tk.Frame(self)
@@ -72,18 +72,18 @@ class LoginPage(tk.Frame):
         pin_label = tk.Label(login_form, text = "PIN:", bg = "#004d4d", fg = "#b37700", font = ('Verdana', 15 , BOLD))
         pin_label.pack(pady = (40,5))
         self.pin_entry = tk.Entry(login_form, textvariable = self.controller.app_data['pin'],show = "*", width = 20, font = ('Verdana', 12, BOLD), bd = 1)
-        
         self.pin_entry.pack()
-        button_login = tk.Button(login_form, cursor = 'hand2', text = "LOGIN", width = 10, height = 3, font = ('Helvetica', 12, BOLD), command = lambda:self.check_login(self.name_entry.get(), self.pin_entry.get()),bg = "#004d4d", fg = '#b37700')
-        button_login.pack(pady = (40,5))
+        self.button_login = tk.Button(login_form, cursor = 'hand2', text = "LOGIN", width = 10, height = 3, font = ('Helvetica', 12, BOLD), command = lambda:self.check_login(self.name_entry.get(), self.pin_entry.get()),bg = "#004d4d", fg = '#b37700')
+        self.button_login.pack(pady = (40,5))
+        self.controller.bind('<Return>', (lambda event: self.check_login(self.name_entry.get(), self.pin_entry.get())))
         bottom_frame = tk.Frame(self, width = 720, height = 30, bg = "#004d4d")
         bottom_frame.pack(fill = 'both')
-        bottom_text = tk.Label(bottom_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        bottom_text = tk.Label(bottom_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         bottom_text.pack( side = tk.RIGHT)
         global pinwrong
         pinwrong = 0
 
-    def check_login(self, name, id):
+    def check_login(self, name, id,):
         connection = sqlite3.connect('data/costumers.db')
         cursor = connection.cursor()
         costumers_name = []
@@ -98,12 +98,13 @@ class LoginPage(tk.Frame):
         for balance in cursor.execute('select balance from costumers'):
             balances.append(balance)
         for costumer in costumers_name:
-            if costumer[0] == name:
+            if costumer[0].lower() == name.lower():
                 pin_id = costumers_name.index(costumer)
                 vname = True
                 if pins[pin_id][0] == int(id):
                     self.controller.app_data['balance'] = balances[pin_id][0]
                     self.controller.add_page()
+                    self.controller.unbind('<Return>')
                     self.controller.show_frame('MainPage')
                     self.name_entry.delete(0, END)
                     self.pin_entry.delete(0, END)
@@ -159,7 +160,7 @@ class MainPage(tk.Frame):
         exit_btn = tk.Button(buttons_frame, text = "EXIT", image = exit_img, compound = tk.LEFT, font = ('Bebas NEUE', 20), width = 250, height = 90, cursor = 'hand2', command = lambda:controller.destroy())
         exit_btn.image = exit_img
         exit_btn.grid(row = 2, column = 1, sticky = tk.E, padx = 10, pady = 40)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (60,0))
         buttons_frame.pack(fill = 'both')
         buttons_frame.grid_columnconfigure(0, weight = 1)

@@ -36,7 +36,7 @@ class BalancePage(tk.Frame):
         btn_continue.grid(row = 0, column = 0, sticky = tk.W, padx = 20)
         btn_exit = tk.Button(buttons_frame, width = 22, height = 2, text = 'EXIT', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:controller.destroy())
         btn_exit.grid(row = 0, column = 1, sticky = tk.E, padx = 20)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (17,0))
         buttons_frame.pack(fill = 'both', pady = (40,0))
         buttons_frame.grid_columnconfigure(0, weight = 1)
@@ -68,7 +68,7 @@ class DepositPage(tk.Frame):
         btn_continue.grid(row = 0, column = 0, sticky = tk.W, padx = 20)
         btn_exit = tk.Button(buttons_frame, width = 22, height = 2, text = 'EXIT', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:controller.destroy())
         btn_exit.grid(row = 0, column = 1, sticky = tk.E, padx = 20)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (21,0))
         buttons_frame.pack(fill = 'both', pady = (70,0))
         buttons_frame.grid_columnconfigure(0, weight = 1)
@@ -89,9 +89,8 @@ class DepositPage(tk.Frame):
                 
                 if messagebox.askyesno('Deposit Succes!', 'The deposit was successful!\nWant to make another deposit?'):
                     self.dep_entry.delete(0, END)
-                    self.controller.del_page()
-                    self.controller.bal_page()
-                    self.controller.show_frame('MainPage')
+                    self.controller.del_page(done = True)
+                    self.controller.show_frame('LoginPage')
                 else:
                     self.controller.destroy()    
             else:
@@ -124,7 +123,7 @@ class WithdrawPage(tk.Frame):
         btn_continue.grid(row = 0, column = 0, sticky = tk.W, padx = 20)
         btn_exit = tk.Button(buttons_frame, width = 22, height = 2, text = 'EXIT', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:controller.destroy())
         btn_exit.grid(row = 0, column = 1, sticky = tk.E, padx = 20)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (35,0))
         buttons_frame.pack(fill = 'both', pady = (70,0))
         buttons_frame.grid_columnconfigure(0, weight = 1)
@@ -132,24 +131,26 @@ class WithdrawPage(tk.Frame):
     
     def check_withdraw(self, amount, valuename):
         balance = check_balance(valuename)
-        if int(amount) > balance:
-            messagebox.showerror('Error amount!', "You don't have the amount requested!")
-        else:
-            balance -= int(amount)
-            connection = sqlite3.connect('data/costumers.db')
-            cursor = connection.cursor()
-            update_balance = """Update costumers set balance=? where fullname=?"""
-            data = (balance, valuename)
-            cursor.execute(update_balance,data)
-            connection.commit()
-            cursor.close()
-            if messagebox.askyesno('Withdraw Succes!', "Want to make another transaction?"):
-                self.width_entry.delete(0, END)
-                self.controller.del_page()
-                self.controller.bal_page()
-                self.controller.show_frame('MainPage')
+        if int(amount) > 10:
+            if int(amount) > balance:
+                messagebox.showerror('Error amount!', "You don't have the amount requested!")
             else:
-                self.controller.destroy()
+                balance -= int(amount) + (2/100) * int(amount)
+                connection = sqlite3.connect('data/costumers.db')
+                cursor = connection.cursor()
+                update_balance = """Update costumers set balance=? where fullname=?"""
+                data = (balance, valuename)
+                cursor.execute(update_balance,data)
+                connection.commit()
+                cursor.close()
+                if messagebox.askyesno('Withdraw Succes!', "Want to make another transaction?"):
+                    self.width_entry.delete(0, END)
+                    self.controller.del_page(done = True)
+                    self.controller.show_frame('LoginPage')
+                else:
+                    self.controller.destroy()
+        else:
+            messagebox.showerror('Error amount!', "You entered the wrong amount! You can deposit between $10 and $9999.")
 
 
 class TransferPage(tk.Frame):
@@ -167,23 +168,23 @@ class TransferPage(tk.Frame):
         withdraw_frame = tk.Frame(main_frame, bg = "#004d4d")
         tranto_text = tk.Label(withdraw_frame, text = "Transfer to:", font = ('Bebas neue', 25), bg = "#004d4d", fg = "black")
         tranto_text.grid(row = 0, column = 0, sticky = "W", padx = (20,5))
-        tranto_entry = tk.Entry(withdraw_frame, bg = "#086c6c", fg = "black", font = ('bebas Neue', 20), bd = 4, width = 15)
-        tranto_entry.grid(row = 0, column = 1, sticky = "W", pady = 20)
+        self.tranto_entry = tk.Entry(withdraw_frame, bg = "#086c6c", fg = "black", font = ('bebas Neue', 20), bd = 4, width = 15)
+        self.tranto_entry.grid(row = 0, column = 1, sticky = "W", pady = 20)
         money_text = tk.Label(withdraw_frame, text = "MONEY:", font = ('Bebas neue', 25), bg = "#004d4d", fg = "black")
         money_text.grid(row = 1, column = 0, sticky = "W", padx = (20,5))
-        money_entry = tk.Entry(withdraw_frame, bg = "#086c6c", fg = "black", font = ('bebas Neue', 20), bd = 4, width = 15)
-        money_entry.grid(row = 1, column = 1, sticky = "W", pady = 20)
+        self.money_entry = tk.Entry(withdraw_frame, bg = "#086c6c", fg = "black", font = ('bebas Neue', 20), bd = 4, width = 15)
+        self.money_entry.grid(row = 1, column = 1, sticky = "W", pady = 20)
         confirm_text = tk.Label(withdraw_frame, text = "confirm pin:", font = ('Bebas neue', 25), bg = "#004d4d", fg = "black")
         confirm_text.grid(row = 3, column = 0, sticky = "W", padx = (20,5))
-        confirm_entry = tk.Entry(withdraw_frame, bg = "#086c6c", show = "*", fg = "black", font = ('bebas Neue', 20), bd = 4, width = 15)
-        confirm_entry.grid(row = 3, column = 1, sticky = "W", pady = 20)
+        self.confirm_entry = tk.Entry(withdraw_frame, bg = "#086c6c", show = "*", fg = "black", font = ('bebas Neue', 20), bd = 4, width = 15)
+        self.confirm_entry.grid(row = 3, column = 1, sticky = "W", pady = 20)
         withdraw_frame.pack(fill = 'x', pady = (40,0))
         buttons_frame = tk.Frame(main_frame, bg ="#004d4d")
-        btn_continue = tk.Button(buttons_frame, width = 22, height = 2, text = 'TRANSFER', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:self.check_transfer(tranto_entry.get(), money_entry.get(), userbalance, confirm_entry.get(), userpin, valuename))
+        btn_continue = tk.Button(buttons_frame, width = 22, height = 2, text = 'TRANSFER', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:self.check_transfer(self.tranto_entry.get(), self.money_entry.get(), userbalance, self.confirm_entry.get(), userpin, valuename))
         btn_continue.grid(row = 0, column = 0, sticky = tk.W, padx = 20)
         btn_exit = tk.Button(buttons_frame, width = 22, height = 2, text = 'EXIT', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:controller.destroy())
         btn_exit.grid(row = 0, column = 1, sticky = tk.E, padx = 20)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (55,0))
         buttons_frame.pack(fill = 'both', pady = (70,0))
         buttons_frame.grid_columnconfigure(0, weight = 1)
@@ -207,10 +208,11 @@ class TransferPage(tk.Frame):
                     messagebox.showerror('Transfer To Error', 'Error! You try to transfer to same account where you are logged.')
                 else:
                     balance_id = costumers_name.index(costumer)
-                    if int(tomoney) <= balance:
+                    if int(tomoney) <= balance and int(tomoney) > 10:
                         if checkpin == userpin:
                             newbalanceto = int(tomoney) + balances[balance_id][0]
-                            newbalanceus = balance - int(tomoney)
+                            newbalanceus = balance - int(tomoney) 
+                            newbalanceus -= (2/100) * int(tomoney)
                             sql_updated = """UPDATE costumers SET balance = ? WHERE fullname = ?"""
                             data = (newbalanceto, snickname)
                             cursor.execute(sql_updated, data)
@@ -221,7 +223,11 @@ class TransferPage(tk.Frame):
                             connection.commit()
                             cursor.close()
                             messagebox.showinfo('Transfer Succes', 'Your transfer succes!')
-                            self.controller.destroy()
+                            self.confirm_entry.delete(0, END)
+                            self.tranto_entry.delete(0, END)
+                            self.money_entry.delete(0, END)
+                            self.controller.del_page(done = True)
+                            self.controller.show_frame('LoginPage')
                         else:
                             messagebox.showerror('PIN Error', 'You enter a wrong pin, try again!')
                     else:
@@ -257,7 +263,7 @@ class ChangePINPage(tk.Frame):
         btn_continue.grid(row = 0, column = 0, sticky = tk.W, padx = 20)
         btn_exit = tk.Button(buttons_frame, width = 22, height = 2, text = 'EXIT', font = ('bebas neue', 20), bg = "#0b3939", fg = 'black', command = lambda:controller.destroy())
         btn_exit.grid(row = 0, column = 1, sticky = tk.E, padx = 20)
-        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.3", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
+        version_text = tk.Label(buttons_frame, text = "ATMBanking v0.5", bg = "#004d4d", fg = "#a6a6a6", font = ('Verdana', 6, BOLD))
         version_text.grid(row = 3, column = 1, sticky = tk.SE, pady= (55,0))
         buttons_frame.pack(fill = 'both', pady = (80,0))
         buttons_frame.grid_columnconfigure(0, weight = 1)
