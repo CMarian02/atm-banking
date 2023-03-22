@@ -11,5 +11,5 @@
 <li> 🔒 - Referring to the change of the logged in user PIN.</li>
 </ul>
 <h3 align = "center">[🎥]A presentation video:[🎥]</h3>
-<p>[⛔] Temporarily unavailable</p>
+<p align = "center">https://youtu.be/cat0A39v3sA</p>
 <h3 align = "center">[✨]The project is considered completed.[✨]</h3>
